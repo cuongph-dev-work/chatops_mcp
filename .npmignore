@@ -1,0 +1,5 @@
+src/
+*.test.ts
+.env*
+.DS_Store
+downloads/
