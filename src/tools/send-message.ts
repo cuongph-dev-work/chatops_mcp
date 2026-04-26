@@ -23,8 +23,10 @@ export async function handleSendMessage(
       `- **Sent at**: ${post.createdAt}`,
       "",
       `> ${post.message.slice(0, 200)}${post.message.length > 200 ? "…" : ""}`,
+      "",
+      "---",
+      `💡 Use \`chatops_reply_to_thread\` with rootPostId \`${post.id}\` to start a thread, or \`chatops_add_reaction\` to react to this message.`,
     ];
-
     return { content: [{ type: "text", text: lines.join("\n") }] };
   } catch (err) {
     const msg = isMcpError(err) ? err.message : String(err);

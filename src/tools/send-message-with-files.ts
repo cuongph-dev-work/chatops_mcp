@@ -43,7 +43,7 @@ export async function handleSendMessageWithFiles(
         lines.push(`${i + 1}. ${f.name} (${f.sizeFormatted}) — \`${f.id}\``);
       });
     }
-
+    lines.push("", "---", `💡 Use \`chatops_reply_to_thread\` with rootPostId \`${post.id}\` to continue the thread, or \`chatops_get_post\` to verify the message.`);
     return { content: [{ type: "text", text: lines.join("\n") }] };
   } catch (err) {
     const msg = isMcpError(err) ? err.message : String(err);

@@ -39,6 +39,7 @@ export async function handleSearchUsers(
       ...users.map(formatUser),
     ];
 
+    lines.push("", "---", "💡 Use `chatops_get_user` for full details, or `chatops_search_posts` with `from:username` to find their messages.");
     return { content: [{ type: "text", text: lines.join("\n") }] };
   } catch (err) {
     const msg = isMcpError(err) ? err.message : String(err);

@@ -19,6 +19,7 @@ function formatUser(u: ChatOpsUser): string {
   if (u.position) lines.push(`- **Position**: ${u.position}`);
   if (u.roles.length) lines.push(`- **Roles**: ${u.roles.join(", ")}`);
   lines.push(`- **Joined**: ${u.createdAt}`);
+  lines.push("", "---", `💡 Use \`chatops_search_posts\` with terms \`from:${u.username}\` to find this user's messages.`);
   return lines.join("\n");
 }
 

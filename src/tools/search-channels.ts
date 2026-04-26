@@ -39,6 +39,7 @@ export async function handleSearchChannels(
       ...channels.map(formatChannel),
     ];
 
+    lines.push("", "---", "💡 Use `chatops_get_channel_posts` with a channel ID to read messages, or `chatops_get_pinned_posts` for pinned content.");
     return { content: [{ type: "text", text: lines.join("\n") }] };
   } catch (err) {
     const msg = isMcpError(err) ? err.message : String(err);

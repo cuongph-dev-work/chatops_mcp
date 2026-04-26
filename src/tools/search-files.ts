@@ -48,6 +48,7 @@ export async function handleSearchFiles(
       ...result.files.map(formatFile),
     ];
 
+    lines.push("", "---", "💡 Use `chatops_get_file_info` with a file ID for full metadata, or `chatops_get_post` with the post ID to see the message context.");
     return { content: [{ type: "text", text: lines.join("\n") }] };
   } catch (err) {
     const msg = isMcpError(err) ? err.message : String(err);

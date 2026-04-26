@@ -33,7 +33,8 @@ export async function handleUploadFile(
       `- **Size**: ${result.sizeFormatted}`,
       `- **MIME type**: ${result.mimeType}`,
       "",
-      `Use \`fileId\` \`${result.fileId}\` with \`chatops_send_message_with_files\` to attach this file to a message.`,
+      "---",
+      `💡 Use \`chatops_send_message_with_files\` with fileId \`${result.fileId}\` and a channelId to attach this file to a message.`,
     ];
 
     return { content: [{ type: "text", text: lines.join("\n") }] };

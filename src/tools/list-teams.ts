@@ -37,6 +37,7 @@ export async function handleListTeams(
       ...teams.map(formatTeam),
     ];
 
+    lines.push("", "---", "💡 Use `chatops_list_channels` with a team ID to browse channels, or `chatops_get_team` for full team details.");
     return { content: [{ type: "text", text: lines.join("\n") }] };
   } catch (err) {
     const msg = isMcpError(err) ? err.message : String(err);

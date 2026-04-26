@@ -63,6 +63,9 @@ export async function handleGetEmoji(
       "| Preview | Name (slug) | ID |",
       "|---------|------------|-----|",
       ...rows,
+      "",
+      "---",
+      "💡 Use emoji names with `chatops_add_reaction` (e.g. emojiName: \"wave\"), or include :emojiname: syntax in `chatops_send_message`.",
     ];
     return { content: [{ type: "text", text: lines.join("\n") }] };
   } catch (err) {

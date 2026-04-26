@@ -25,7 +25,7 @@ export async function handleGetFileInfo(
     if (f.postId)    lines.push(`- **Post ID**   : \`${f.postId}\``);
     if (f.channelId) lines.push(`- **Channel**   : \`${f.channelId}\``);
     if (f.createdAt) lines.push(`- **Uploaded**  : ${f.createdAt}`);
-
+    if (f.postId) lines.push("", "---", `💡 Use \`chatops_get_post\` with postId \`${f.postId}\` to see the message this file was attached to.`);
     return { content: [{ type: "text", text: lines.join("\n") }] };
   } catch (err) {
     const msg = isMcpError(err) ? err.message : String(err);

@@ -29,8 +29,10 @@ export async function handleReplyToThread(
       `- **Sent at**: ${post.createdAt}`,
       "",
       `> ${post.message.slice(0, 200)}${post.message.length > 200 ? "…" : ""}`,
+      "",
+      "---",
+      `💡 Use \`chatops_get_thread\` with postId \`${post.rootId}\` to see the full conversation.`,
     ];
-
     return { content: [{ type: "text", text: lines.join("\n") }] };
   } catch (err) {
     const msg = isMcpError(err) ? err.message : String(err);

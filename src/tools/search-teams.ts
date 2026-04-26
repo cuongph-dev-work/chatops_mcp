@@ -37,6 +37,7 @@ export async function handleSearchTeams(
       ...teams.map(formatTeam),
     ];
 
+    lines.push("", "---", "💡 Use `chatops_list_channels` with a team ID to browse channels, or `chatops_search_posts` to find specific messages.");
     return { content: [{ type: "text", text: lines.join("\n") }] };
   } catch (err) {
     const msg = isMcpError(err) ? err.message : String(err);

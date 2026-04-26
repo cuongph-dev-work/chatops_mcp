@@ -25,6 +25,7 @@ export async function handleGetTeam(
     ];
     if (t.description) lines.splice(2, 0, "", `> ${t.description}`);
 
+    lines.push("", "---", "💡 Use `chatops_list_channels` with this team ID to see all channels, or `chatops_search_posts` to search messages in this team.");
     return { content: [{ type: "text", text: lines.join("\n") }] };
   } catch (err) {
     const msg = isMcpError(err) ? err.message : String(err);

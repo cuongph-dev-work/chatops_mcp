@@ -24,8 +24,10 @@ export async function handleAddReaction(
       `- **Post ID**: \`${reaction.postId}\``,
       `- **User ID**: \`${reaction.userId}\``,
       `- **Reacted at**: ${reaction.createdAt}`,
+      "",
+      "---",
+      "💡 Use `chatops_get_reactions` to see all reactions on this post, or `chatops_get_thread` to view the full conversation.",
     ];
-
     return { content: [{ type: "text", text: lines.join("\n") }] };
   } catch (err) {
     const msg = isMcpError(err) ? err.message : String(err);

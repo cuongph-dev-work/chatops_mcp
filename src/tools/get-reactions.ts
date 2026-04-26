@@ -47,8 +47,10 @@ export async function handleGetReactions(
       "| Emoji | User ID | Reacted at |",
       "|-------|---------|------------|",
       ...detailLines,
+      "",
+      "---",
+      "💡 Use `chatops_add_reaction` to add a reaction, or `chatops_get_post` to see the full post context.",
     ];
-
     return { content: [{ type: "text", text: lines.join("\n") }] };
   } catch (err) {
     const msg = isMcpError(err) ? err.message : String(err);

@@ -44,6 +44,7 @@ export async function handleListChannels(
       ...channels.map(formatChannel),
     ];
 
+    lines.push("", "---", "💡 Use `chatops_get_channel_posts` with a channel ID to read messages, or `chatops_get_channel` for full channel details.");
     return { content: [{ type: "text", text: lines.join("\n") }] };
   } catch (err) {
     const msg = isMcpError(err) ? err.message : String(err);

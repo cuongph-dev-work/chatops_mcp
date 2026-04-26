@@ -40,7 +40,7 @@ export async function handleGetChannel(
     ];
     if (c.purpose) lines.push(`- **Purpose**: ${c.purpose}`);
     if (c.header) lines.push(`- **Header**: ${c.header}`);
-
+    lines.push("", "---", "💡 Use `chatops_get_channel_posts` to read messages, or `chatops_get_pinned_posts` for pinned content in this channel.");
     return { content: [{ type: "text", text: lines.join("\n") }] };
   } catch (err) {
     const msg = isMcpError(err) ? err.message : String(err);
