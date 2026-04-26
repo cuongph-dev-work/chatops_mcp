@@ -10,9 +10,24 @@ const schema = z.object({
     .string()
     .url("CHATOPS_URL must be a valid URL (e.g. https://chatops.yourcompany.com)"),
 
-  CHATOPS_TOKEN: z
+  CHATOPS_SESSION_FILE: z
     .string()
-    .min(1, "CHATOPS_TOKEN must not be empty"),
+    .default(".chatops/session.json")
+    .describe("Path to the persisted Playwright session file"),
+
+  CHATOPS_VALIDATE_PATH: z
+    .string()
+    .default("/api/v4/users/me")
+    .describe("API path used to validate the session is still alive"),
+
+  PLAYWRIGHT_HEADLESS: z
+    .string()
+    .default("false")
+    .transform((v) => v.toLowerCase() === "true"),
+
+  PLAYWRIGHT_BROWSER: z
+    .enum(["chromium", "firefox", "webkit"])
+    .default("chromium"),
 
   LOG_LEVEL: z
     .enum(["debug", "info", "warn", "error"])

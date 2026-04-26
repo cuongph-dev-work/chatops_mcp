@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// ChatOpsHttpClient — Axios-based HTTP client with Bearer token auth
+// ChatOpsHttpClient — Axios-based HTTP client with SSO session cookie auth
 // ---------------------------------------------------------------------------
 import axios, { type AxiosInstance } from "axios";
 import FormData from "form-data";
@@ -20,8 +20,9 @@ import type {
   ChatOpsFileUploadResult,
   ChatOpsReaction,
   ChatOpsEmoji,
+  SessionCookies,
 } from "../types.js";
-import { authError, chatopsHttpError } from "../errors.js";
+import { sessionExpired, chatopsHttpError } from "../errors.js";
 import {
   teamsUrl,
   teamUrl,
@@ -56,14 +57,17 @@ export class ChatOpsHttpClient {
   private readonly http: AxiosInstance;
   private readonly baseUrl: string;
 
-  constructor(baseUrl: string, token: string) {
+  constructor(baseUrl: string, cookies: SessionCookies) {
     this.baseUrl = baseUrl.replace(/\/$/, "");
     this.http = axios.create({
       headers: {
-        Authorization: `Bearer ${token}`,
+        Cookie: cookies.cookieHeader,
         Accept: "application/json",
         "Content-Type": "application/json",
       },
+      // Block redirects — a redirect usually means the session expired and
+      // ChatOps is sending us back to the SSO login page.
+      maxRedirects: 0,
       // Don't throw on non-2xx — we inspect status manually
       validateStatus: () => true,
     });
@@ -245,18 +249,37 @@ export class ChatOpsHttpClient {
 
   // ── Private helpers ────────────────────────────────────────────────────────
 
-
-  private checkAuthFailure(status: number): void {
+  private checkAuthFailure(status: number, body: unknown): void {
     if (status === 401 || status === 403) {
-      throw authError();
+      throw sessionExpired();
+    }
+    // Redirects (3xx) mean ChatOps is bouncing us to the SSO login page
+    if (status >= 300 && status < 400) {
+      throw sessionExpired(
+        `ChatOps redirected (${status}) — session likely expired. Run \`chatops-auth-login\` to reauthenticate.`
+      );
+    }
+    // Guard against HTML login page returned with 200 OK
+    if (typeof body === "string" && isLoginPage(body)) {
+      throw sessionExpired(
+        "ChatOps returned a login page — session has expired. Run `chatops-auth-login` to reauthenticate."
+      );
     }
   }
 
   private assertOk(status: number, url: string, body: unknown): void {
-    this.checkAuthFailure(status);
+    this.checkAuthFailure(status, body);
     if (status < 200 || status >= 300) {
       const bodyStr = typeof body === "string" ? body : JSON.stringify(body);
       throw chatopsHttpError(status, url, bodyStr);
     }
   }
+}
+
+function isLoginPage(body: string): boolean {
+  const lower = body.toLowerCase();
+  return (
+    lower.startsWith("<!") &&
+    (lower.includes("log in") || lower.includes("login") || lower.includes("sso"))
+  );
 }

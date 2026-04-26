@@ -1,7 +1,6 @@
 import type { Config } from "../config.js";
-import { ChatOpsHttpClient } from "../chatops/http-client.js";
+import { createClient, errorContent } from "../utils.js";
 import { isMcpError } from "../errors.js";
-import { errorContent } from "../utils.js";
 import type { ChatOpsPost } from "../types.js";
 
 export interface GetPinnedPostsInput {
@@ -24,7 +23,7 @@ export async function handleGetPinnedPosts(
   input: GetPinnedPostsInput,
   cfg: Config
 ): Promise<{ content: Array<{ type: "text"; text: string }>; isError?: boolean }> {
-  const client = new ChatOpsHttpClient(cfg.CHATOPS_URL, cfg.CHATOPS_TOKEN);
+  const client = await createClient(cfg);
   try {
     const postList = await client.getPinnedPosts(input.channelId);
 

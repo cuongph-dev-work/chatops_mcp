@@ -1,9 +1,8 @@
 import { readFile } from "fs/promises";
 import { basename } from "path";
 import type { Config } from "../config.js";
-import { ChatOpsHttpClient } from "../chatops/http-client.js";
+import { createClient, errorContent } from "../utils.js";
 import { isMcpError, invalidInput } from "../errors.js";
-import { errorContent } from "../utils.js";
 
 export interface UploadFileInput {
   channelId: string;
@@ -14,7 +13,7 @@ export async function handleUploadFile(
   input: UploadFileInput,
   cfg: Config
 ): Promise<{ content: Array<{ type: "text"; text: string }>; isError?: boolean }> {
-  const client = new ChatOpsHttpClient(cfg.CHATOPS_URL, cfg.CHATOPS_TOKEN);
+  const client = await createClient(cfg);
   try {
     let buffer: Buffer;
     try {

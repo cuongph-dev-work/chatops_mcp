@@ -6,6 +6,35 @@
 
 // ── Teams ───────────────────────────────────────────────────────────────────
 
+// ── Auth / Session ───────────────────────────────────────────────────────────
+
+/** Shape of a single Playwright-persisted cookie. */
+export interface PlaywrightCookie {
+  name: string;
+  value: string;
+  domain: string;
+  path: string;
+  expires: number;
+  httpOnly: boolean;
+  secure: boolean;
+  sameSite: "Strict" | "Lax" | "None";
+}
+
+/** Top-level shape written by `session-store.writeSession`. */
+export interface SessionFile {
+  savedAt: string;    // ISO 8601
+  baseUrl: string;
+  storageState: {
+    cookies?: PlaywrightCookie[];
+    origins?: unknown[];
+  };
+}
+
+/** Extracted, ready-to-use form of the session for HTTP calls. */
+export interface SessionCookies {
+  cookieHeader: string;   // e.g. "MMAUTHTOKEN=abc; MMUSERID=xyz"
+}
+
 export interface ChatOpsTeam {
   id: string;
   displayName: string;

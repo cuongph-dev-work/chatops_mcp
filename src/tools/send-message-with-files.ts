@@ -1,7 +1,6 @@
 import type { Config } from "../config.js";
-import { ChatOpsHttpClient } from "../chatops/http-client.js";
+import { createClient, errorContent } from "../utils.js";
 import { isMcpError } from "../errors.js";
-import { errorContent } from "../utils.js";
 
 export interface SendMessageWithFilesInput {
   channelId: string;
@@ -18,7 +17,7 @@ export async function handleSendMessageWithFiles(
     return errorContent("fileIds must not be empty. Use chatops_send_message for text-only messages.");
   }
 
-  const client = new ChatOpsHttpClient(cfg.CHATOPS_URL, cfg.CHATOPS_TOKEN);
+  const client = await createClient(cfg);
   try {
     const post = await client.createPost(
       input.channelId,

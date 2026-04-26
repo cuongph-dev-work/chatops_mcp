@@ -1,16 +1,21 @@
 {
   "name": "@cuongph.dev/chatops-mcp",
-  "version": "0.1.0",
-  "description": "MCP server for ChatOps — read teams, channels, messages; send messages with attachments",
+  "version": "0.2.0",
+  "description": "MCP server for ChatOps — SSO session auth via Playwright, read teams/channels/messages, send messages with attachments",
   "type": "module",
   "engines": {
     "node": ">=20"
   },
   "bin": {
-    "chatops-mcp": "dist/server.js"
+    "chatops-mcp": "dist/server.js",
+    "chatops-auth-login": "dist/cli/auth-login.js",
+    "chatops-auth-check": "dist/cli/auth-check.js",
+    "chatops-auth-clear": "dist/cli/auth-clear.js"
   },
   "files": [
+    "dist/auth",
     "dist/chatops",
+    "dist/cli",
     "dist/tools",
     "dist/types",
     "dist/config.js",
@@ -28,9 +33,12 @@
   ],
   "scripts": {
     "build": "tsc --noEmit false --outDir dist",
-    "prepare": "npm run build && chmod +x dist/server.js",
+    "prepare": "npm run build && chmod +x dist/server.js dist/cli/auth-login.js dist/cli/auth-check.js dist/cli/auth-clear.js",
     "dev": "tsx src/server.ts",
     "start": "node dist/server.js",
+    "chatops-auth-login": "tsx src/cli/auth-login.ts",
+    "chatops-auth-check": "tsx src/cli/auth-check.ts",
+    "chatops-auth-clear": "tsx src/cli/auth-clear.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "prepublishOnly": "npm test"
@@ -40,6 +48,7 @@
     "axios": "^1.7.7",
     "dotenv": "^16.4.5",
     "form-data": "^4.0.1",
+    "playwright": "^1.48.2",
     "zod": "^3.23.8"
   },
   "devDependencies": {

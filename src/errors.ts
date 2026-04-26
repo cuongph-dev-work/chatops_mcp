@@ -3,6 +3,8 @@
 // ---------------------------------------------------------------------------
 
 export type ErrorCode =
+  | "AUTH_REQUIRED"
+  | "SESSION_EXPIRED"
   | "AUTH_ERROR"
   | "CHATOPS_HTTP_ERROR"
   | "CHATOPS_RESPONSE_ERROR"
@@ -31,10 +33,21 @@ export class McpError extends Error {
 // Factory helpers — keeps call sites concise
 // ---------------------------------------------------------------------------
 
-export function authError(
-  message = "ChatOps returned 401/403 — check that CHATOPS_TOKEN is valid."
+export function authRequired(
+  message = "No ChatOps session found. Run `chatops-auth-login` to authenticate."
 ): McpError {
-  return new McpError("AUTH_ERROR", message);
+  return new McpError("AUTH_REQUIRED", message);
+}
+
+export function sessionExpired(
+  message = "ChatOps session expired or rejected. Run `chatops-auth-login` to reauthenticate."
+): McpError {
+  return new McpError("SESSION_EXPIRED", message);
+}
+
+/** @deprecated Kept for backward-compat — prefer sessionExpired() */
+export function authError(message?: string): McpError {
+  return sessionExpired(message);
 }
 
 export function chatopsHttpError(status: number, url: string, body?: string): McpError {

@@ -1,7 +1,6 @@
 import type { Config } from "../config.js";
-import { ChatOpsHttpClient } from "../chatops/http-client.js";
+import { createClient, errorContent } from "../utils.js";
 import { isMcpError } from "../errors.js";
-import { errorContent } from "../utils.js";
 import type { ChatOpsTeam } from "../types.js";
 
 export interface SearchTeamsInput {
@@ -22,7 +21,7 @@ export async function handleSearchTeams(
   input: SearchTeamsInput,
   cfg: Config
 ): Promise<{ content: Array<{ type: "text"; text: string }>; isError?: boolean }> {
-  const client = new ChatOpsHttpClient(cfg.CHATOPS_URL, cfg.CHATOPS_TOKEN);
+  const client = await createClient(cfg);
   try {
     const teams = await client.searchTeams(input.term);
 

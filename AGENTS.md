@@ -10,7 +10,7 @@ chatops-mcp exposes ChatOps capabilities as MCP tools:
 - **Read**: teams, channels, messages, threads, pinned posts
 - **Write**: send messages, reply to threads, upload files, send messages with attachments
 
-Authentication uses a **Bearer token** (`CHATOPS_TOKEN`) provided via environment variable. There is no session management, no Playwright, no cookie store.
+Authentication uses **SSO session cookies** captured via Playwright. Run `chatops-auth-login` once to complete the SSO flow in a browser; the session is persisted to disk and reused by the MCP server on every request.
 
 ---
 
@@ -20,14 +20,22 @@ Authentication uses a **Bearer token** (`CHATOPS_TOKEN`) provided via environmen
 chatops-mcp/
 ├── src/
 │   ├── server.ts               # Entry point — MCP server factory, tool registration
-│   ├── config.ts               # Zod env validation (CHATOPS_URL, CHATOPS_TOKEN)
+│   ├── config.ts               # Zod env validation (CHATOPS_URL, CHATOPS_SESSION_FILE…)
 │   ├── errors.ts               # McpError + factory helpers
 │   ├── types.ts                # Normalized domain types (ChatOpsTeam, Channel, Post…)
-│   ├── utils.ts                # Shared helpers (formatFileSize, channelTypeLabel…)
+│   ├── utils.ts                # Shared helpers (createClient, formatFileSize…)
+│   ├── auth/
+│   │   ├── session-store.ts    # read/write/clear session file on disk
+│   │   ├── session-manager.ts  # extractCookies, loadAndValidateSession
+│   │   └── playwright-auth.ts  # runInteractiveLogin, validateCandidateSession
 │   ├── chatops/
 │   │   ├── http-client.ts      # ChatOpsHttpClient — all HTTP calls live here
 │   │   ├── endpoints.ts        # URL builders for /api/v4/* paths
 │   │   └── mappers.ts          # Raw API types → domain types
+│   ├── cli/
+│   │   ├── auth-login.ts       # chatops-auth-login binary
+│   │   ├── auth-check.ts       # chatops-auth-check binary
+│   │   └── auth-clear.ts       # chatops-auth-clear binary
 │   ├── types/
 │   │   └── chatops-api.ts      # Raw API response shapes (never used outside mappers)
 │   ├── tools/                  # One file per tool, handler function only
@@ -42,9 +50,9 @@ chatops-mcp/
 1. **HTTP through `ChatOpsHttpClient` only** — tools never call `axios` directly.
 2. **Two-layer types**: `src/types/chatops-api.ts` (raw, internal) and `src/types.ts` (domain, exposed).
 3. **Mappers own the translation** — `src/chatops/mappers.ts` is the only code that converts raw → domain.
-4. **Tool handlers are thin** — call client method → format output → return. No HTTP logic in tools.
+4. **Tool handlers are thin** — call `createClient(cfg)` → call client method → format output → return. No HTTP or auth logic in tools.
 5. **Errors via `McpError`** — all layers throw `McpError`; tool handlers catch with `isMcpError()` guard.
-6. **Auth failure** — `ChatOpsHttpClient.assertOk()` detects 401/403 and throws `authError()`.
+6. **Auth failure** — `ChatOpsHttpClient.assertOk()` detects 401/403/3xx and throws `sessionExpired()`. Expired session → user must run `chatops-auth-login`.
 
 ---
 
@@ -52,7 +60,7 @@ chatops-mcp/
 
 - **TypeScript strict** — `"strict": true` in tsconfig. No `any` without comment.
 - **ESM imports** — all internal imports use `.js` extension (NodeNext resolution).
-- **No `console.log`** — use `process.stderr.write()` for diagnostics only.
+- **No `console.log`** — use `process.stderr.write()` for diagnostics only (CLI files may use `console.log`).
 - **Tool response shape**:
   ```typescript
   // Success
@@ -112,9 +120,8 @@ Open `src/chatops/mappers.ts` → add `mapSomething()` function.
 Create `src/tools/<verb>-<noun>.ts`:
 ```typescript
 import type { Config } from "../config.js";
-import { ChatOpsHttpClient } from "../chatops/http-client.js";
 import { isMcpError } from "../errors.js";
-import { errorContent } from "../utils.js";
+import { createClient, errorContent } from "../utils.js";
 
 export interface VerbNounInput { ... }
 
@@ -122,7 +129,7 @@ export async function handleVerbNoun(
   input: VerbNounInput,
   cfg: Config
 ): Promise<{ content: Array<{ type: "text"; text: string }>; isError?: boolean }> {
-  const client = new ChatOpsHttpClient(cfg.CHATOPS_URL, cfg.CHATOPS_TOKEN);
+  const client = await createClient(cfg);   // loads & validates session
   try {
     const result = await client.getSomething(input.id);
     // Format output as Markdown
@@ -182,8 +189,11 @@ Do **not** import from `../../` — this resolves outside `src/`.
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `CHATOPS_URL` | ✅ | Base URL of the ChatOps instance, no trailing slash |
-| `CHATOPS_TOKEN` | ✅ | Bearer token (Personal Access Token or Bot Token) |
-| `LOG_LEVEL` | ❌ | `debug \| info \| warn \| error` (default: `info`) |
+| `CHATOPS_SESSION_FILE` | ❌ | Path to session file (default: `.chatops/session.json`) |
+| `CHATOPS_VALIDATE_PATH` | ❌ | API path to validate session (default: `/api/v4/users/me`) |
+| `PLAYWRIGHT_HEADLESS` | ❌ | `true\|false` — headless browser for login (default: `false`) |
+| `PLAYWRIGHT_BROWSER` | ❌ | `chromium\|firefox\|webkit` (default: `chromium`) |
+| `LOG_LEVEL` | ❌ | `debug\|info\|warn\|error` (default: `info`) |
 
 ---
 
@@ -191,8 +201,15 @@ Do **not** import from `../../` — this resolves outside `src/`.
 
 ```bash
 cp .env.example .env
-# Edit .env with real CHATOPS_URL and CHATOPS_TOKEN
+# Edit .env with real CHATOPS_URL
 
+# 1. Authenticate (opens browser for SSO)
+npm run chatops-auth-login
+
+# 2. Verify session is valid
+npm run chatops-auth-check
+
+# 3. Start the MCP server
 npm run dev        # tsx src/server.ts (development)
 npm run build      # tsc → dist/
 npm start          # node dist/server.js
@@ -203,7 +220,7 @@ echo '{"jsonrpc":"2.0","method":"tools/list","id":1}' | node dist/server.js
 
 ---
 
-## MCP Client Configuration (Claude Desktop)
+## MCP Client Configuration (Claude Desktop / Cursor)
 
 ```json
 {
@@ -213,9 +230,11 @@ echo '{"jsonrpc":"2.0","method":"tools/list","id":1}' | node dist/server.js
       "args": ["-y", "@cuongph.dev/chatops-mcp"],
       "env": {
         "CHATOPS_URL": "https://chatops.yourcompany.com",
-        "CHATOPS_TOKEN": "your_token_here"
+        "CHATOPS_SESSION_FILE": "/absolute/path/to/.chatops/session.json"
       }
     }
   }
 }
 ```
+
+> **Important**: `CHATOPS_SESSION_FILE` should be an absolute path when using MCP clients, since the working directory may differ from where you ran `chatops-auth-login`.

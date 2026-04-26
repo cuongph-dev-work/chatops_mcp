@@ -40,7 +40,7 @@ function createMcpServer(): McpServer {
 
   server.tool(
     "chatops_list_teams",
-    "List all ChatOps teams accessible with the current token. Returns team ID, display name, slug, type, and description.",
+    "List all ChatOps teams accessible to the authenticated user. Returns team ID, display name, slug, type, and description.",
     {
       page: z.number().int().min(0).optional().default(0)
         .describe("0-based page number (default 0)."),

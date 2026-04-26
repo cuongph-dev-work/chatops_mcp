@@ -1,7 +1,6 @@
 import type { Config } from "../config.js";
-import { ChatOpsHttpClient } from "../chatops/http-client.js";
+import { createClient, errorContent } from "../utils.js";
 import { isMcpError } from "../errors.js";
-import { errorContent } from "../utils.js";
 
 export interface GetChannelInput {
   /** Channel ID (preferred) */
@@ -22,7 +21,7 @@ export async function handleGetChannel(
     );
   }
 
-  const client = new ChatOpsHttpClient(cfg.CHATOPS_URL, cfg.CHATOPS_TOKEN);
+  const client = await createClient(cfg);
   try {
     const c = input.channelId
       ? await client.getChannel(input.channelId)
