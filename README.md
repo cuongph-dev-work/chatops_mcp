@@ -189,9 +189,9 @@ chatops-auth-check
 
 ```
 chatops_smart_search({
-  teamName: "Đà Nẵng",
-  channelName: "CHECK.OFF.LATER",
-  userName: "quangdt@runsystem.net",
+  teamName: "Engineering",
+  channelName: "general",
+  userName: "alice.smith@example.com",
   dateFrom: "2026-04-01",
   dateTo: "2026-04-30"
 })
