@@ -16,37 +16,41 @@ Authentication uses **SSO session cookies** captured via Playwright — no Perso
 - 😀 **Reactions & Emoji** — add reactions, browse custom emoji
 - 👤 **User lookup** — search users by name/email, get user details
 
-## Quick Start
+## Quick Start (End Users)
 
-### Prerequisites
+> No cloning or building required. Use `npx` directly.
 
-- Node.js ≥ 20
-- Access to your ChatOps instance (SSO login credentials)
+### Step 1 — Install Playwright Chromium
 
-### 1. Install
-
-```bash
-npm install -g @cuongph.dev/chatops-mcp
-```
-
-### 2. Authenticate (one-time)
+Required once for the SSO browser login flow:
 
 ```bash
-# Opens a browser window — complete the SSO login, then close the browser
-chatops-auth-login
+npx -y playwright install chromium
 ```
 
-The session is saved to `~/.chatops/chatops-mcp/session.json` (npm install) or `.chatops/session.json` (local dev) and reused on every subsequent request. Re-run `chatops-auth-login` when the session expires.
+### Step 2 — Authenticate with ChatOps
 
-### 3. Verify
+You must provide your ChatOps URL when logging in. Replace the URL with your actual instance:
 
 ```bash
-chatops-auth-check
+CHATOPS_URL=https://chatops.yourcompany.com npx -y -p @cuongph.dev/chatops-mcp chatops-auth-login
 ```
 
-### 4. Configure your MCP client
+A browser window will open. Complete your SSO login manually. The session is saved locally to `.chatops/session.json` (or `~/.chatops/chatops-mcp/session.json` for global npx usage).
 
-**Claude Desktop** — add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
+Verify the session is active:
+
+```bash
+CHATOPS_URL=https://chatops.yourcompany.com npx -y -p @cuongph.dev/chatops-mcp chatops-auth-check
+```
+
+### Step 3 — Add to your MCP client
+
+No separate server process needed — the MCP client spawns and manages the process automatically via stdio.
+
+#### Claude Desktop
+
+Edit `~/Library/Application Support/Claude/claude_desktop_config.json`:
 
 ```json
 {
@@ -62,7 +66,9 @@ chatops-auth-check
 }
 ```
 
-**Cursor** — add to `~/.cursor/mcp.json`:
+#### Cursor
+
+Edit `~/.cursor/mcp.json` (global) or `.cursor/mcp.json` in your project:
 
 ```json
 {
@@ -78,12 +84,18 @@ chatops-auth-check
 }
 ```
 
-**Gemini CLI** — add to `~/.gemini/settings.json`:
+#### Gemini CLI
+
+```bash
+gemini mcp add chatops npx -y @cuongph.dev/chatops-mcp --env CHATOPS_URL=https://chatops.yourcompany.com
+```
+
+Or edit `~/.gemini/settings.json`:
 
 ```json
 {
   "mcpServers": {
-    "chatops-mcp": {
+    "chatops": {
       "command": "npx",
       "args": ["-y", "@cuongph.dev/chatops-mcp"],
       "env": {
@@ -94,15 +106,17 @@ chatops-auth-check
 }
 ```
 
-> **Note**: Session files are auto-resolved. For npm installs, sessions go to `~/.chatops/chatops-mcp/`. No need to set `CHATOPS_SESSION_FILE` manually.
+> **Tip:** You can omit the `env` block and place `CHATOPS_URL=https://chatops.yourcompany.com` in a `.env` file at your working directory instead. `dotenv` is loaded automatically at startup.
 
-## Auth CLI
+Restart your MCP client after saving the config.
+
+### Session Management
 
 | Command | Description |
 |---------|-------------|
-| `chatops-auth-login` | Opens browser, completes SSO, saves session |
-| `chatops-auth-check` | Validates the stored session against the API |
-| `chatops-auth-clear` | Removes the stored session file |
+| `npx @cuongph.dev/chatops-mcp chatops-auth-login` | Launch SSO browser flow and save session |
+| `npx @cuongph.dev/chatops-mcp chatops-auth-check` | Validate whether the stored session is alive |
+| `npx @cuongph.dev/chatops-mcp chatops-auth-clear` | Remove the stored session file |
 
 ## Environment Variables
 
