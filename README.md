@@ -33,7 +33,7 @@ npx -y playwright install chromium
 You must provide your ChatOps URL when logging in. Replace the URL with your actual instance:
 
 ```bash
-CHATOPS_URL=https://chatops.yourcompany.com npx -y -p @cuongph.dev/chatops-mcp chatops-auth-login
+CHATOPS_URL=https://chatops.yourcompany.com npx -y -p @cuongph.dev/chatops-mcp@latest chatops-auth-login
 ```
 
 A browser window will open. Complete your SSO login manually. The session is saved locally to `.chatops/session.json` (or `~/.chatops/chatops-mcp/session.json` for global npx usage).
@@ -41,7 +41,7 @@ A browser window will open. Complete your SSO login manually. The session is sav
 Verify the session is active:
 
 ```bash
-CHATOPS_URL=https://chatops.yourcompany.com npx -y -p @cuongph.dev/chatops-mcp chatops-auth-check
+CHATOPS_URL=https://chatops.yourcompany.com npx -y -p @cuongph.dev/chatops-mcp@latest chatops-auth-check
 ```
 
 ### Step 3 — Add to your MCP client
